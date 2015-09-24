@@ -1,0 +1,122 @@
+import com.sun.tools.javac.jvm.ClassFile;
+
+import java.sql.PreparedStatement;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
+/**
+ * Created by ByTeK on 09/03/15.
+ */
+public class LexiqueBDD {
+    private Connection con = null;
+    private ResultSet rs = null;
+    private PreparedStatement pst = null;
+
+
+    private String url = "jdbc:postgresql:///base";
+    private String user = "ByTeK";
+    private String password = "";
+
+    public LexiqueBDD(){
+
+        try {
+            con = DriverManager.getConnection(url, user, password);
+
+        } catch (SQLException ex) {
+            Logger lgr = Logger.getLogger(ClassFile.Version.class.getName());
+            lgr.log(Level.SEVERE, ex.getMessage(), ex);
+
+        }
+    }
+
+    public int whereLexique(String word){
+        String req = new String();
+        long time = System.currentTimeMillis();
+        for (int i = 0; i<25;i++){
+            Cesar ces = new Cesar(i);
+            req += "SELECT Count(*) FROM lexique WHERE mot = '"+ces.dechiffrer(word)+"' UNION ALL ";
+        }
+        req += "SELECT Count(*) FROM lexique WHERE mot = '"+new Cesar(25).dechiffrer(word)+"'";
+        try {
+            pst = con.prepareStatement(req);
+            System.out.println(System.currentTimeMillis()-time);
+            rs = pst.executeQuery();
+            int result = 0;
+            while(rs.next()){
+                if(rs.getInt(1) == 1){
+                    return result;
+                }
+                result++;
+            }
+        } catch (SQLException ex) {
+            Logger lgr = Logger.getLogger(ClassFile.Version.class.getName());
+            lgr.log(Level.SEVERE, ex.getMessage(), ex);
+        }finally {
+            try {
+                if (rs != null) {
+                    rs.close();
+                }
+                if (pst != null) {
+                    pst.close();
+                }
+
+            } catch (SQLException ex) {
+                Logger lgr = Logger.getLogger(ClassFile.Version.class.getName());
+                lgr.log(Level.WARNING, ex.getMessage(), ex);
+            }
+        }
+        return 0;
+    }
+
+    public  boolean inLexique(String word) {
+        try{
+            pst = con.prepareStatement("SELECT Count(*) FROM lexique WHERE mot = '"+word+"'");
+            //long time = System.currentTimeMillis();
+            rs = pst.executeQuery();
+            //System.out.println(System.currentTimeMillis()-time);
+            rs.next();
+            if(rs.getInt(1) == 0)return false;
+            return true;
+        }
+        catch (SQLException ex) {
+            Logger lgr = Logger.getLogger(ClassFile.Version.class.getName());
+            lgr.log(Level.SEVERE, ex.getMessage(), ex);
+        }finally {
+            try {
+                if (rs != null) {
+                    rs.close();
+                }
+                if (pst != null) {
+                    pst.close();
+                }
+
+            } catch (SQLException ex) {
+                Logger lgr = Logger.getLogger(ClassFile.Version.class.getName());
+                lgr.log(Level.WARNING, ex.getMessage(), ex);
+            }
+        }
+        return false;
+    }
+
+    public void closeBdd() {
+        try {
+            if (rs != null) {
+                rs.close();
+            }
+            if (pst != null) {
+                pst.close();
+            }
+            if (con != null) {
+                con.close();
+            }
+
+        } catch (SQLException ex) {
+            Logger lgr = Logger.getLogger(ClassFile.Version.class.getName());
+
+        }
+    }
+}

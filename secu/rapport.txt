@@ -1,0 +1,55 @@
+Implémentation :
+
+==== Lexique ====
+Pour la structure du lexique j'ai fait le choix d'utiliser un DAWG : Directed Acyclique Word Graph.
+Ce dernier permet une recherche de Mot et de pattern très rapide.
+Pour générer le Dawg, j'ai utilisé un programme C que l'on peut trouver ici :http://pages.pathcom.com/~vadco/dawg.html#structure 
+
+==== Decrypt ====
+
+-> Cesar 1 c 1 <-
+Capitalisant sur le fait que le lexique est trés performant j'ai fait le choix de rechercher
+dans les texte chiffrer tout les mot de meme taille que celui connut: Grace a la permiere lettre de ce dernier 
+j'en déduit le decalage possible. Puis je déchiffre le mot grace a ce décalage et vérifie si il appartient au lexique.
+Le cas échéant je déchiffre l'ensemble du texte ou je passe au mot suivant.
+Cette méthode c'est avéré plus rapide que de rechercher les mot du texte chiffrer avec le meme décalage caractere par caractere.
+
+-> Cesar 2 c 2<- 
+Après avoir constaté que la fréquence d'apparation de la lettre 'e' était bien suppérieur a celle des autres lettres
+(dans la langue francaise). A l'aide d'un parcours du texte chiffrer je recherche la lettre apparaisant le plus de foi (noté x)
+et j'en déduis que le décalage le plus probable du texte est "x - e" modulo 26. 
+
+-> Cesar 3 c R<-
+Ici on capitalise une nouvelle foi sur le lexique, pour tester chacun des 26 décalage de cesar proposer. Dans un but d'efficacité
+j'ai fait le choix de déchiffrer les mot un par un et de passer au décalage suivant si un mot déchiffrer n'apartenait pas au lexique. 
+
+-> Vignere t v t<- 
+L'algorithme choisit ici est lourdement dépendant du rapport longeur du texte longueur de la clé, compte tenu du faite qu'il calcul la fréquence
+des lettres sur le texte chiffrer moduler par la taille de la clé car on la connait. De ces fréquence on en déduit de la meme facon que pour cesar.
+Le décalage (donc la lettre) de chacun des caractere de la clé. 
+
+-> Vignere nt v 0<-
+Une nouvelle foi l'implémentation choisit est celle qui utilise le lexique au maximum en raison de l'efficacité de ce dernier.
+Ici on cherche a testé l'ensemble des taille de clé possible (si celle ci sont inférieur a 10% de la taille du texte). A partir 
+de cette taille on genere un clé de vignere par l'algorithme précedant et on teste 10% du texte avec la clé vis a vis du dictionnaire.
+On aurait put choisir de verifier que le déchifrement du texte a key était le même que avec key+key mais compte tenu de l'efficacité du dictionnaire 
+la premiere méthode est plus efficace.
+Pour appeller indiquer une taille de 0
+
+-> Permutation p<- 
+Aprés avoir remarque que dans la langue francaise mis a part le 'e' la fréquence des lettres était souvent tres proche les une des autres.
+J'ai choisis d'implementer un algorithme proche de celui du sudoku.
+En effet je creer pour chacune des lettre un HashSet contenant les char possible que cette lettre peut renvoyer.
+Un hashset que je met a jour grace a mon lexique qui est capable de me renvoyer l'ensemble des mot de i lettre contenant x y en j et k eme position.
+Une foi qu'un de mes HashSet a une taille de 1 alors, je connais une permutation.
+Je continue alors l'algo jusque a connaitre toute les permutation.
+Si la taille du texte le permet l'algo fourni alors une permutation permetant un décryptage complet du texte.
+
+-> Full f<-
+Le décryptage full par du constat que le code de cesar n'est qu'une permutation particuliere, il commence alors par tenter un
+decrypt par permutation, si ce dernier echoue (un HashSet vide) alors il tente un décrypt de vigenere sans taille de clé.
+
+==== Usage ====
+
+java securite.decrypt <f,c,v,p> <fichier> [n°methode Cesar] [Argument Methode (mot/taille clé)]
+
